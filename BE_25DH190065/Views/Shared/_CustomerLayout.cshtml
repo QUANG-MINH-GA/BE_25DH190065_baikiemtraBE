@@ -1,0 +1,171 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - MyStore</title>
+    <!-- Nhúng Font Awesome để lấy icon Giỏ hàng, User, Secure... -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* CSS Khung giao diện - Mẫu 10 */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #fff;
+        }
+
+        /* 1. Thiết kế Header & Menu */
+        header {
+            border-bottom: 1px solid #eee;
+            padding: 15px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+            gap: 25px;
+        }
+
+            nav ul li a {
+                text-decoration: none;
+                color: #555;
+                font-size: 14px;
+                font-weight: 500;
+                text-transform: capitalize;
+            }
+
+                nav ul li a:hover {
+                    color: #000;
+                }
+
+        /* Cụm User và Cart bên phải */
+        .header-right {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+
+            .header-right a {
+                text-decoration: none;
+                color: #555;
+                font-size: 14px;
+            }
+
+        .cart-icon {
+            position: relative;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -10px;
+            right: -15px;
+            background-color: #999;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 10px;
+        }
+
+        /* 2. Phần nội dung chính (Thay đổi theo từng trang) */
+        .main-content {
+            min-height: 500px;
+        }
+
+        /* 3. Thiết kế Footer (Secure Shopping, Returns...) */
+        .footer-features {
+            display: flex;
+            justify-content: space-around;
+            padding: 50px;
+            background-color: #fff;
+            border-top: 1px solid #eee;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .feature-item i {
+            font-size: 35px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .feature-item h4 {
+            margin: 0 0 5px;
+            color: #333;
+            font-weight: normal;
+        }
+
+        .feature-item p {
+            margin: 0;
+            font-size: 13px;
+            color: #999;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #777;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <!-- PHẦN ĐẦU TRANG (Dùng chung) -->
+    <header>
+        <!-- Menu danh mục -->
+        <nav>
+            <ul>
+                <li><a href="/Home/Index">Phòng Khách</a></li>
+                <li><a href="#">Phòng Ngủ</a></li>
+                <li><a href="#">Phòng Ăn & Bếp</a></li>
+                <li><a href="#">Ngoài Trời</a></li>
+                <li><a href="#">Trang Trí</a></li>
+            </ul>
+        </nav>
+
+        <!-- Tài khoản và Giỏ hàng -->
+        <div class="header-right">
+            <a href="#"><i class="fas fa-user"></i> Tài Khoản</a>
+            <a href="#" class="cart-icon">
+                <i class="fas fa-shopping-cart"></i> Giỏ Hàng
+                <span class="cart-badge">0</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- PHẦN NỘI DUNG ĐỘNG (Các trang con sẽ đổ vào đây) -->
+    <div class="main-content">
+        @RenderBody()
+    </div>
+
+    <!-- PHẦN CHÂN TRANG (Dùng chung) -->
+    <footer>
+        <div class="footer-features">
+            <div class="feature-item">
+                <i class="fas fa-lock"></i>
+                <h4>Secure Shopping</h4>
+                <p>Mua sắm an toàn, bảo mật</p>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-comment-dots"></i>
+                <h4>Need Assistance?</h4>
+                <p>Hỗ trợ trực tuyến 24/7</p>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-exchange-alt"></i>
+                <h4>30 Day Returns</h4>
+                <p>Đổi trả dễ dàng trong 30 ngày</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            &copy; @DateTime.Now.Year - Thiết kế theo Mẫu 10 - Đồ án BE_25DH190065
+        </div>
+    </footer>
+</body>
+</html>

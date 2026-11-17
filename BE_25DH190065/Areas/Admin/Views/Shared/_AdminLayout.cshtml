@@ -1,0 +1,46 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Quản trị MyStore</title>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/PagedList.css" rel="stylesheet" />
+</head>
+<body>
+    <nav class="navbar navbar-expand-sm navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/Admin/Home/Index">ADMIN MYSTORE</a>
+            <div class="navbar-nav">
+                <a href="/Admin/Home/Index" class="nav-link">Home</a>
+                <a href="/Admin/Categories/Index" class="nav-link">Quản lý Danh mục</a>
+                <a href="/Admin/Products/Index" class="nav-link">Quản lý Sản phẩm</a>
+                <a href="/Admin/Customers/Index" class="nav-link">Khách hàng</a>
+                <a href="/Admin/Orders/Index" class="nav-link">Đơn hàng</a>
+                <a href="/Admin/Users/Index" class="nav-link">Tài khoản</a>
+                @if (Session["AdminUser"] != null)
+                {
+                    <a href="/Admin/Users/Logout" class="nav-link text-danger">Đăng xuất (@Session["AdminUser"])</a>
+                }
+                else
+                {
+                    <a href="/Admin/Users/Login" class="nav-link text-info">Đăng nhập</a>
+                }
+                <a href="/" class="nav-link text-warning">Về trang khách hàng</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container body-content">
+        @RenderBody()
+        <hr />
+        <footer>
+            <p>&copy; @DateTime.Now.Year - Đồ án Web Bán Hàng (MyStore)</p>
+        </footer>
+    </div>
+
+    <script src="~/Scripts/jquery-3.7.0.min.js"></script>
+    <script src="~/Scripts/bootstrap.bundle.min.js"></script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>

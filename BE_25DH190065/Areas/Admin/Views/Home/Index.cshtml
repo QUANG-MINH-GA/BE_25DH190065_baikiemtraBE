@@ -1,0 +1,63 @@
+﻿@model IEnumerable<BE_25DH190065.Models.ViewModel.StatisticsVM>
+
+@{
+    ViewBag.Title = "Trang chủ quản trị";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2 class="bg-success" style="padding: 10px;">THỐNG KÊ HÀNG HÓA TỪNG LOẠI</h2>
+
+<table class="table table-bordered table-striped bg-info">
+    <thead>
+        <tr>
+            <th class="bg-success">Loại hàng</th>
+            <th class="bg-success">Số lượng</th>
+            <th class="bg-success">Giá cao nhất</th>
+            <th class="bg-success">Giá thấp nhất</th>
+            <th class="bg-success">Giá trung bình</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.CategoryName</td>
+                <td>@item.ProductCount</td>
+                <td>@String.Format("{0:0,0}", item.HighestPrice) VNĐ</td>
+                <td>@String.Format("{0:0,0}", item.LowestPrice) VNĐ</td>
+                <td>@String.Format("{0:0,0}", item.AveragePrice) VNĐ</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h2 class="bg-success" style="padding: 10px; margin-top: 30px;">BIỂU ĐỒ THỐNG KÊ</h2>
+
+<!-- Vùng hiển thị biểu đồ Google Chart -->
+<div id="piechart" style="width: 100%; height: 450px;"></div>
+
+<!-- Nhúng thư viện Google Charts -->
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+    google.charts.load('current', { 'packages': ['corechart'] });
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+            ['Loại hàng', 'Số lượng sản phẩm'],
+            @foreach (var item in Model)
+            {
+                <text>['@Html.Raw(item.CategoryName)', @item.ProductCount],</text>
+            }
+        ]);
+
+        var options = {
+            title: 'TỶ LỆ HÀNG HÓA THEO DANH MỤC',
+            is3D: true,
+            fontSize: 14
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+        chart.draw(data, options);
+    }
+</script>

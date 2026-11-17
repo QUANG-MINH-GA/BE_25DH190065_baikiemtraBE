@@ -1,0 +1,279 @@
+﻿@model BE_25DH190065.Models.ViewModel.HomeProductVM
+@using PagedList.Mvc;
+
+@{
+    ViewBag.Title = "Trang chủ Nội Thất";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* 1. Hero Banner chuẩn Mẫu 10 */
+    .hero-furniture {
+        position: relative;
+        width: 100%;
+        height: 400px;
+        background: url('https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1400&q=80') center/cover no-repeat;
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 35px;
+    }
+
+    .hero-overlay-box {
+        position: absolute;
+        top: 50%;
+        left: 6%;
+        transform: translateY(-50%);
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(4px);
+        padding: 32px 36px;
+        max-width: 380px;
+    }
+
+        .hero-overlay-box .sub-title {
+            font-size: 20px;
+            color: #555;
+            font-weight: 400;
+            line-height: 1.2;
+        }
+
+        .hero-overlay-box .main-title {
+            font-size: 34px;
+            color: #6b8223;
+            font-weight: 700;
+            line-height: 1.15;
+            margin-bottom: 10px;
+        }
+
+        .hero-overlay-box .discount-text {
+            font-size: 16px;
+            color: #444;
+            margin-bottom: 18px;
+        }
+
+            .hero-overlay-box .discount-text strong {
+                font-size: 24px;
+                color: #222;
+            }
+
+    .btn-olive {
+        background-color: #8ba629;
+        color: #fff;
+        border: none;
+        padding: 8px 22px;
+        font-size: 13px;
+        font-weight: 600;
+        border-radius: 2px;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-olive:hover {
+            background-color: #748c20;
+            color: #fff;
+        }
+
+    /* 2. Tiêu đề Section tối giản */
+    .section-heading {
+        font-size: 18px;
+        font-weight: 600;
+        color: #444;
+        margin-bottom: 20px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #eee;
+    }
+
+    /* 3. Card sản phẩm tối giản nền trắng giống Mẫu 10 */
+    .furn-card {
+        background: #fff;
+        border: 1px solid #f0f0f0;
+        padding: 15px;
+        transition: box-shadow 0.2s, transform 0.2s;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+        .furn-card:hover {
+            box-shadow: 0 6px 18px rgba(0,0,0,0.07);
+            transform: translateY(-2px);
+        }
+
+        .furn-card img {
+            width: 100%;
+            height: 170px;
+            object-fit: contain;
+            margin-bottom: 14px;
+        }
+
+    .furn-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+        text-decoration: none;
+        display: block;
+        margin-bottom: 4px;
+    }
+
+        .furn-title:hover {
+            color: #8ba629;
+        }
+
+    .furn-price {
+        font-size: 14px;
+        color: #8ba629;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .furn-meta {
+        font-size: 12px;
+        color: #888;
+    }
+
+    /* 4. 3 Banner Quảng Cáo Phụ bên dưới giống Mẫu 10 */
+    .promo-banner {
+        position: relative;
+        height: 175px;
+        background-size: cover;
+        background-position: center;
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+
+    .promo-caption {
+        position: absolute;
+        bottom: 15px;
+        left: 15px;
+        right: 15px;
+        padding: 10px 14px;
+        color: #fff;
+    }
+
+        .promo-caption h6 {
+            font-weight: 700;
+            margin-bottom: 2px;
+            font-size: 15px;
+        }
+
+        .promo-caption p {
+            font-size: 11px;
+            margin-bottom: 0;
+            opacity: 0.92;
+        }
+</style>
+
+<!-- Banner chính phong cách Mẫu 10 -->
+<div class="hero-furniture">
+    <div class="hero-overlay-box">
+        <div class="sub-title">Không gian mơ ước</div>
+        <div class="main-title">Bộ Bàn Ăn Gỗ</div>
+        <div class="discount-text">ưu đãi lên đến <strong>25%</strong></div>
+        <a href="#featured-section" class="btn-olive">Khám phá ngay</a>
+    </div>
+</div>
+
+<!-- Thanh tìm kiếm tinh gọn -->
+<div class="row justify-content-end mb-4">
+    <div class="col-md-5">
+        @using (Html.BeginForm("Index", "Home", FormMethod.Get, new { @class = "input-group input-group-sm" }))
+        {
+            <input type="text" name="searchTerm" value="@Model.SearchTerm" class="form-control" placeholder="Tìm kiếm bàn, ghế, sofa, giường..." />
+            <button type="submit" class="btn btn-olive">Tìm kiếm</button>
+        }
+    </div>
+</div>
+
+<!-- Khu vực Sản phẩm nổi bật -->
+<div id="featured-section">
+    <h4 class="section-heading">Giải Pháp Nội Thất Tinh Tế Cho Ngôi Nhà Bạn</h4>
+    <div class="row">
+        @foreach (var item in Model.FeaturedProducts)
+        {
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="furn-card">
+                    <div>
+                        <a href="@Url.Action("ProductDetail", "Home", new { id = item.ProductID })">
+                            <img src="@Url.Content(item.ProductImage)" alt="@item.ProductName" />
+                        </a>
+                        <a href="@Url.Action("ProductDetail", "Home", new { id = item.ProductID })" class="furn-title">
+                            @item.ProductName
+                        </a>
+                        <div class="furn-price">@String.Format("{0:0,0}", item.ProductPrice) VNĐ</div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                        <span class="furn-meta">@item.Category.CategoryName</span>
+                        <a href="@Url.Action("AddToCart", "Cart", new { id = item.ProductID, quantity = 1 })" class="btn btn-sm btn-outline-secondary" style="font-size: 11px;">
+                            + Giỏ hàng
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- 3 Banner Bộ Sưu Tập bên dưới giống Mẫu 10 -->
+<div class="row my-4">
+    <div class="col-md-4">
+        <div class="promo-banner" style="background-image: url('https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80');">
+            <div class="promo-caption" style="background: rgba(139, 166, 41, 0.9);">
+                <h6>Phong Cách Bắc Âu</h6>
+                <p>Thiết kế tối giản, tinh tế cho phòng khách hiện đại</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="promo-banner" style="background-image: url('https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=600&q=80');">
+            <div class="promo-caption" style="background: rgba(74, 155, 179, 0.9);">
+                <h6>Ý Tưởng Không Gian Sống</h6>
+                <p>Phòng ngủ ấm cúng, thư giãn trọn vẹn</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="promo-banner" style="background-image: url('https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=600&q=80');">
+            <div class="promo-caption" style="background: rgba(115, 108, 102, 0.9);">
+                <h6>Giảm Giá Đến 40%</h6>
+                <p>Ưu đãi đặc biệt cho nội thất sân vườn & ban công</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Khu vực Tất cả sản phẩm & Phân trang -->
+<h4 class="section-heading mt-4">Tất Cả Bộ Sưu Tập Nội Thất</h4>
+<div class="row">
+    @foreach (var item in Model.NewProducts)
+    {
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <div class="furn-card">
+                <div>
+                    <a href="@Url.Action("ProductDetail", "Home", new { id = item.ProductID })">
+                        <img src="@Url.Content(item.ProductImage)" alt="@item.ProductName" />
+                    </a>
+                    <a href="@Url.Action("ProductDetail", "Home", new { id = item.ProductID })" class="furn-title">
+                        @item.ProductName
+                    </a>
+                    <div class="furn-price">@String.Format("{0:0,0}", item.ProductPrice) VNĐ</div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                    <span class="furn-meta">Đã bán: @item.OrderDetails.Count()</span>
+                    <a href="@Url.Action("ProductDetail", "Home", new { id = item.ProductID })" class="btn btn-sm btn-olive" style="padding: 3px 10px; font-size: 11px;">
+                        Chi tiết
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Phân trang -->
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <span class="text-muted small">
+        Trang @(Model.NewProducts.PageCount < Model.NewProducts.PageNumber ? 0 : Model.NewProducts.PageNumber) / @Model.NewProducts.PageCount
+    </span>
+    <div>
+        @Html.PagedListPager(Model.NewProducts, page => Url.Action("Index", new { page, searchTerm = Model.SearchTerm }))
+    </div>
+</div>

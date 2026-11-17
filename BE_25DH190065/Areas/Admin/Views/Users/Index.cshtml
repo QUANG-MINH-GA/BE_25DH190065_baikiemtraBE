@@ -1,0 +1,47 @@
+﻿@model PagedList.IPagedList<BE_25DH190065.Models.User>
+@using PagedList.Mvc;
+
+@{
+    ViewBag.Title = "Quản lý tài khoản";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2 class="bg-success" style="padding: 10px;">DANH SÁCH TÀI KHOẢN</h2>
+
+@using (Html.BeginForm("Index", "Users", FormMethod.Get))
+{
+    <p style="margin: 15px 0;">
+        Tìm tài khoản (Tên đăng nhập hoặc Vai trò): @Html.TextBox("searchString", ViewBag.CurrentFilter as string)
+        <input type="submit" value="Tìm kiếm" class="btn btn-primary btn-sm" />
+    </p>
+}
+
+<table class="table table-bordered bg-info">
+    <tr>
+        <th class="bg-success">Tên đăng nhập</th>
+        <th class="bg-success">Mật khẩu</th>
+        <th class="bg-success">Vai trò (Role)</th>
+        <th class="bg-success">Thao tác</th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@Html.DisplayFor(modelItem => item.Username)</td>
+            <td>@Html.DisplayFor(modelItem => item.Password)</td>
+            <td>@Html.DisplayFor(modelItem => item.UserRole)</td>
+            <td>
+                @Html.ActionLink("Sửa", "Edit", new { id = item.Username }, new { @class = "btn btn-primary btn-sm" })
+                @Html.ActionLink("Xóa", "Delete", new { id = item.Username }, new { @class = "btn btn-primary btn-sm" })
+            </td>
+        </tr>
+    }
+</table>
+
+<p>
+    @Html.ActionLink("Thêm tài khoản mới", "Create", null, new { @class = "btn btn-primary" })
+</p>
+
+<br />
+Trang @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) / @Model.PageCount
+@Html.PagedListPager(Model, page => Url.Action("Index", new { page, searchString = ViewBag.CurrentFilter }))

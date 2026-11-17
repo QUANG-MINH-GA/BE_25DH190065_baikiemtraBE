@@ -1,0 +1,66 @@
+﻿@model IEnumerable<BE_25DH190065.Models.Order>
+
+@{
+    ViewBag.Title = "Lịch sử đơn hàng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h3 class="mb-4" style="color: #444;">LỊCH SỬ ĐƠN HÀNG CỦA BẠN</h3>
+
+@if (TempData["OrderMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["OrderMessage"]</div>
+}
+
+<table class="table table-bordered align-middle bg-white shadow-sm">
+    <thead class="table-light">
+        <tr>
+            <th>Mã ĐH</th>
+            <th>Ngày đặt</th>
+            <th>Địa chỉ giao hàng</th>
+            <th>Trạng thái</th>
+            <th class="text-end">Tổng tiền</th>
+            <th class="text-center" style="width: 160px;">Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            string status = (item.PaymentStatus ?? "").Trim();
+            bool isCancelled = (status == "Đã hủy" || status == "Hủy");
+
+            <tr>
+                <td class="fw-bold">#@item.OrderID</td>
+                <td>@item.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@item.AddressDelivery</td>
+                <td>
+                    @if (isCancelled)
+                    {
+                        <span class="badge bg-danger">@status</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">@status</span>
+                    }
+                </td>
+                <td class="text-end fw-bold" style="color: #8ba629;">@String.Format("{0:0,0}", item.TotalAmount) đ</td>
+                <td class="text-center">
+                    <a href="@Url.Action("OrderSuccess", "Order", new { id = item.OrderID })" class="btn btn-sm btn-outline-secondary">
+                        Xem
+                    </a>
+
+                    @if (!isCancelled && status != "Đã giao" && status != "Đã thanh toán")
+                    {
+                        using (Html.BeginForm("CancelOrder", "Order", new { id = item.OrderID }, FormMethod.Post, new { style = "display:inline;" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc muốn hủy đơn hàng #@item.OrderID không?');">
+                                Hủy đơn
+                            </button>
+                        }
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

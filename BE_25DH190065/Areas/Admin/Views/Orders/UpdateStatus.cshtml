@@ -1,0 +1,39 @@
+﻿@model BE_25DH190065.Models.Order
+
+@{
+    ViewBag.Title = "Cập nhật trạng thái đơn hàng";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container mt-4" style="max-width: 550px;">
+    <div class="card p-4 shadow-sm">
+        <h4 class="mb-3 fw-bold">CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG #@Model.OrderID</h4>
+        <hr />
+        @using (Html.BeginForm("UpdateStatus", "Orders", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.OrderID)
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Khách hàng:</label>
+                <input type="text" class="form-control bg-light" value="@(Model.Customer != null ? Model.Customer.CustomerName : "")" readonly />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Trạng thái đơn hàng:</label>
+                <select name="PaymentStatus" class="form-select">
+                    <option value="Chờ thanh toán" @(Model.PaymentStatus == "Chờ thanh toán" ? "selected" : "")>Chờ thanh toán</option>
+                    <option value="Đang xử lý" @(Model.PaymentStatus == "Đang xử lý" || Model.PaymentStatus == "COD" ? "selected" : "")>Đang xử lý</option>
+                    <option value="Đang vận chuyển" @(Model.PaymentStatus == "Đang vận chuyển" ? "selected" : "")>Đang vận chuyển</option>
+                    <option value="Đã giao" @(Model.PaymentStatus == "Đã giao" ? "selected" : "")>Đã giao</option>
+                    <option value="Đã hủy" @(Model.PaymentStatus == "Đã hủy" ? "selected" : "")>Đã hủy</option>
+                </select>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-success px-4 me-2">Lưu trạng thái</button>
+                <a href="@Url.Action("DetailedOrder", "Orders", new { id = Model.OrderID })" class="btn btn-outline-secondary">Hủy bỏ</a>
+            </div>
+        }
+    </div>
+</div>

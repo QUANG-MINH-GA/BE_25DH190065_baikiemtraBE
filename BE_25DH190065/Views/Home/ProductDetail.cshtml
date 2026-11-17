@@ -1,0 +1,135 @@
+﻿@model BE_25DH190065.Models.ViewModel.ProductDetailVM
+@using PagedList.Mvc;
+
+@{
+    ViewBag.Title = Model.product.ProductName;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .pro-detail-box {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .pro-detail-img {
+        width: 100%;
+        max-height: 380px;
+        object-fit: contain;
+        border-radius: 5px;
+    }
+
+    .pro-price {
+        color: #d9534f;
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .related-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 10px;
+        text-align: center;
+        background: #fff;
+        height: 100%;
+    }
+
+        .related-card img {
+            width: 100%;
+            height: 130px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+</style>
+
+<div class="container mt-3">
+    <div class="row">
+        <!-- Cột trái: Ảnh sản phẩm -->
+        <div class="col-md-4">
+            <div class="pro-detail-box text-center">
+                <img src="@Url.Content(Model.product.ProductImage)" alt="@Model.product.ProductName" class="pro-detail-img" />
+            </div>
+        </div>
+
+        <!-- Cột giữa: Thông tin chi tiết & Mô tả -->
+        <div class="col-md-5">
+            <div class="pro-detail-box">
+                <h3>@Model.product.ProductName</h3>
+                <p class="text-muted">
+                    Danh mục: <strong>@Model.product.Category.CategoryName</strong> |
+                    Đã bán: <strong>@Model.product.OrderDetails.Count()</strong>
+                </p>
+                <hr />
+                <p class="pro-price">@String.Format("{0:0,0}", Model.product.ProductPrice) VNĐ</p>
+                <hr />
+                <h5>Mô tả sản phẩm:</h5>
+                <p>@Model.product.ProductDecription</p>
+            </div>
+
+            <!-- Danh sách sản phẩm tương tự -->
+            <div class="pro-detail-box">
+                <h5>Sản phẩm tương tự</h5>
+                <div class="row">
+                    @foreach (var item in Model.RelatedProducts)
+                    {
+                        <div class="col-md-4 col-sm-6 mb-3">
+                            <div class="related-card">
+                                <a href="@Url.Action("ProductDetail", "Home", new { id = item.ProductID })">
+                                    <img src="@Url.Content(item.ProductImage)" alt="@item.ProductName" />
+                                </a>
+                                <div class="small font-weight-bold">@item.ProductName</div>
+                                <div class="text-danger small">@String.Format("{0:0,0}", item.ProductPrice) đ</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột phải: Chọn số lượng, Tạm tính & Thêm vào giỏ hàng -->
+        <div class="col-md-3">
+            <div class="pro-detail-box">
+                @using (Html.BeginForm("ProductDetail", "Home", FormMethod.Get))
+                {
+                    @Html.Hidden("id", Model.product.ProductID)
+                    <div class="form-group mb-3">
+                        <label><strong>Số lượng đặt mua:</strong></label>
+                        @Html.TextBoxFor(m => m.quantity, new { @class = "form-control", type = "number", min = 1, onchange = "this.form.submit();" })
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Tạm tính:</label>
+                        <h4 class="text-danger">@String.Format("{0:0,0}", Model.estimatedValue) VNĐ</h4>
+                    </div>
+
+                    <a href="@Url.Action("AddToCart", "Cart", new { id = Model.product.ProductID, quantity = Model.quantity })" class="btn btn-danger w-100 mb-2">
+                        Thêm vào giỏ hàng
+                    </a>
+                }
+                <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary w-100">Tiếp tục mua sắm</a>
+            </div>
+
+            <!-- Top Deals cùng danh mục -->
+            <div class="pro-detail-box">
+                <h5>Top Deals</h5>
+                @foreach (var item in Model.TopProducts)
+                {
+                    <div class="d-flex align-items-center mb-2 pb-2 border-bottom">
+                        <img src="@Url.Content(item.ProductImage)" style="width: 55px; height: 55px; object-fit: cover; margin-right: 10px;" />
+                        <div>
+                            <a href="@Url.Action("ProductDetail", "Home", new { id = item.ProductID })" class="small d-block">@item.ProductName</a>
+                            <span class="text-danger small font-weight-bold">@String.Format("{0:0,0}", item.ProductPrice) đ</span>
+                        </div>
+                    </div>
+                }
+                <div class="mt-2">
+                    @Html.PagedListPager(Model.TopProducts, page => Url.Action("ProductDetail", new { id = Model.product.ProductID, quantity = Model.quantity, page }))
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

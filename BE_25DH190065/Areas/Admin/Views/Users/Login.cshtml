@@ -1,0 +1,29 @@
+﻿@{
+    ViewBag.Title = "Đăng nhập Admin";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row" style="margin-top: 40px;">
+    <div class="col-md-4 col-md-offset-4">
+        <h2 class="bg-success text-center" style="padding: 10px;">ĐĂNG NHẬP QUẢN TRỊ</h2>
+
+        @if (ViewBag.ErrorMessage != null)
+        {
+            <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+        }
+
+        @using (Html.BeginForm("Login", "Users", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label>Tên đăng nhập:</label>
+                <input type="text" name="username" class="form-control" required />
+            </div>
+            <div class="form-group">
+                <label>Mật khẩu:</label>
+                <input type="password" name="password" class="form-control" required />
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Đăng nhập</button>
+        }
+    </div>
+</div>

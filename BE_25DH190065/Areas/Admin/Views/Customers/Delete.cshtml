@@ -1,0 +1,60 @@
+﻿@model BE_25DH190065.Models.Customer
+
+@{
+    ViewBag.Title = "Chi tiết khách hàng";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2 class="bg-success" style="padding: 10px;">THÔNG TIN KHÁCH HÀNG</h2>
+
+<div class="well">
+    <dl class="dl-horizontal">
+        <dt>Họ tên:</dt>
+        <dd>@Model.CustomerName</dd>
+
+        <dt>Số điện thoại:</dt>
+        <dd>@Model.CustomerPhone</dd>
+
+        <dt>Email:</dt>
+        <dd>@Model.CustomerEmail</dd>
+
+        <dt>Địa chỉ:</dt>
+        <dd>@Model.CustomerAddress</dd>
+
+        <dt>Tài khoản:</dt>
+        <dd>@Model.Username</dd>
+    </dl>
+</div>
+
+<h3 class="bg-success" style="padding: 10px;">LỊCH SỬ ĐƠN HÀNG CỦA KHÁCH</h3>
+
+@if (Model.Orders != null && Model.Orders.Any())
+{
+    <table class="table table-bordered table-striped">
+        <tr>
+            <th>Mã đơn</th>
+            <th>Ngày đặt</th>
+            <th>Tổng tiền</th>
+            <th>Trạng thái thanh toán</th>
+            <th>Địa chỉ giao hàng</th>
+        </tr>
+        @foreach (var order in Model.Orders)
+        {
+            <tr>
+                <td>#@order.OrderID</td>
+                <td>@String.Format("{0:dd/MM/yyyy}", order.OrderDate)</td>
+                <td>@String.Format("{0:0,0}", order.TotalAmount) VNĐ</td>
+                <td>@order.PaymentStatus</td>
+                <td>@order.AddressDelivery</td>
+            </tr>
+        }
+    </table>
+}
+else
+{
+    <p class="alert alert-warning">Khách hàng này chưa có đơn hàng nào.</p>
+}
+
+<p>
+    @Html.ActionLink("Quay lại danh sách", "Index", null, new { @class = "btn btn-primary" })
+</p>

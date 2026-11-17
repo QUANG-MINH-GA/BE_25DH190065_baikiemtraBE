@@ -1,0 +1,305 @@
+﻿@{
+    // Lấy thông tin giỏ hàng từ Session
+    var cart = Session["Cart"] as BE_25DH190065.Models.ViewModel.Cart;
+
+    // Kiểm tra trạng thái đăng nhập từ FormsAuthentication hoặc Session
+    bool isLogged = User.Identity.IsAuthenticated || Session["Username"] != null;
+    string currentUser = User.Identity.IsAuthenticated
+        ? User.Identity.Name
+        : (Session["Username"] != null ? Session["Username"].ToString() : string.Empty);
+
+    // Lấy quyền hiện tại từ Session
+    string currentRole = Session["UserRole"] != null ? Session["UserRole"].ToString().Trim() : "";
+    bool isAdmin = (Session["AdminUser"] != null) ||
+                   currentRole.Equals("A", System.StringComparison.OrdinalIgnoreCase) ||
+                   currentRole.Equals("Admin", System.StringComparison.OrdinalIgnoreCase);
+
+    // Khởi tạo ViewBag.pmmodel theo cấu trúc PersonalMenuVM
+    ViewBag.pmmodel = new BE_25DH190065.Models.ViewModel.PersonalMenuVM
+    {
+        IsLoggedIn = isLogged,
+        Username = currentUser,
+        CartCount = (cart != null && cart.Items.Any()) ? cart.Items.Count() : 0
+    };
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Anh Minh Nội Thất</title>
+    <title>@ViewBag.Title - ANHMINHNOITHAT.com</title>
+    <link rel="icon" type="image/png" href="@Url.Content("~/Content/Images/logo-anhminh.png")" />
+    <link rel="shortcut icon" type="image/png" href="@Url.Content("~/Content/Images/logo-anhminh.png")" />
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/PagedList.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <style>
+        :root {
+            --am-dark: #222325;
+            --am-dark-soft: #2c2d30;
+            --am-gold: #d4af37;
+            --am-gold-hover: #b89124;
+            --am-cream: #faf8f5;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #2b2b2b;
+            background-color: var(--am-cream);
+        }
+
+        /* Thanh menu nền đen than chì đồng bộ với nền Logo Anh Minh */
+        .furniture-navbar {
+            background-color: var(--am-dark);
+            border-bottom: 2px solid var(--am-gold);
+            padding: 10px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+        }
+
+            .furniture-navbar .nav-link {
+                color: #f0ece1 !important;
+                font-size: 14px;
+                font-weight: 500;
+                padding: 8px 14px !important;
+                transition: color 0.2s;
+            }
+
+                .furniture-navbar .nav-link:hover {
+                    color: var(--am-gold) !important;
+                }
+
+        /* Khối hiển thị hình Logo + tên thương hiệu */
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            margin-right: 22px;
+        }
+
+            .brand-logo img {
+                height: 52px;
+                width: 52px;
+                object-fit: cover;
+                border-radius: 6px;
+                border: 1px solid rgba(212, 175, 55, 0.45);
+                margin-right: 10px;
+            }
+
+        .brand-text {
+            line-height: 1.15;
+        }
+
+            .brand-text .main-name {
+                display: block;
+                font-weight: 700;
+                font-size: 17px;
+                letter-spacing: 1px;
+                color: #ffffff;
+            }
+
+            .brand-text .sub-name {
+                display: block;
+                font-size: 11px;
+                letter-spacing: 3px;
+                color: var(--am-gold);
+                font-weight: 600;
+            }
+
+        /* Nút & Thành phần tông Vàng Gold */
+        .btn-gold {
+            background-color: var(--am-gold);
+            color: #1c1d1f !important;
+            font-weight: 600;
+            border: none;
+        }
+
+            .btn-gold:hover {
+                background-color: var(--am-gold-hover);
+                color: #ffffff !important;
+            }
+
+        .btn-outline-gold {
+            border: 1px solid var(--am-gold);
+            color: var(--am-gold) !important;
+        }
+
+            .btn-outline-gold:hover {
+                background-color: var(--am-gold);
+                color: #1c1d1f !important;
+            }
+
+        /* Dropdown menu Tài khoản */
+        .account-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .account-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: var(--am-dark-soft);
+            min-width: 195px;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-radius: 4px;
+            z-index: 1000;
+        }
+
+            .account-dropdown-content a {
+                color: #f0ece1;
+                padding: 10px 16px;
+                text-decoration: none;
+                display: block;
+                font-size: 13.5px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+                .account-dropdown-content a:hover {
+                    background-color: rgba(212, 175, 55, 0.15);
+                    color: var(--am-gold);
+                }
+
+        .account-dropdown:hover .account-dropdown-content {
+            display: block;
+        }
+
+        /* Khu vực 3 cam kết dưới chân trang */
+        .trust-badges {
+            border-top: 2px solid var(--am-gold);
+            padding: 38px 0;
+            margin-top: 50px;
+            background-color: var(--am-dark-soft);
+            color: #f0ece1;
+        }
+
+        .trust-icon {
+            font-size: 26px;
+            color: var(--am-gold);
+            margin-bottom: 8px;
+        }
+
+        .trust-item h6 {
+            font-weight: 600;
+            color: var(--am-gold);
+            margin-top: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .trust-item p {
+            font-size: 13px;
+            color: #cccccc;
+            margin-bottom: 0;
+        }
+
+        /* Footer nền đen chữ vàng kem */
+        .am-footer {
+            background-color: var(--am-dark);
+            color: #b5b0a3;
+            border-top: 1px solid rgba(212, 175, 55, 0.25);
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Thanh điều hướng Anh Minh Nội Thất -->
+    <nav class="navbar navbar-expand-lg furniture-navbar sticky-top">
+        <div class="container">
+            <a class="brand-logo" href="@Url.Action("Index", "Home")">
+                <img src="@Url.Content("~/Content/Images/logo-anhminh.png")" alt="Anh Minh Nội Thất" />
+                <div class="brand-text">
+                    <span class="main-name">ANH MINH</span>
+                    <span class="sub-name">NỘI THẤT</span>
+                </div>
+            </a>
+
+            <div class="navbar-nav me-auto">
+                <a href="@Url.Action("Index", "Home")" class="nav-link"><i class="fas fa-home me-1"></i>Trang chủ</a>
+                <a href="@Url.Action("Index", "Home", new { searchTerm = "Phòng khách" })" class="nav-link">Phòng khách</a>
+                <a href="@Url.Action("Index", "Home", new { searchTerm = "Phòng ngủ" })" class="nav-link">Phòng ngủ</a>
+                <a href="@Url.Action("Index", "Home", new { searchTerm = "Bàn" })" class="nav-link">Phòng ăn & Bếp</a>
+                <a href="@Url.Action("Index", "Home", new { searchTerm = "Ghế" })" class="nav-link">Sân vườn & Trang trí</a>
+            </div>
+
+            <div class="navbar-nav align-items-center">
+                <!-- Dropdown Tài khoản -->
+                <div class="account-dropdown">
+                    <a href="javascript:void(0)" class="nav-link" id="account-name">
+                        <i class="fas fa-user me-1" style="color: #d4af37;"></i>
+                        @if (ViewBag.pmmodel.IsLoggedIn)
+                        {
+                            <span>Xin chào, <strong style="color: #d4af37;">@ViewBag.pmmodel.Username</strong></span>
+                        }
+                        else
+                        {
+                            <span>Tài khoản</span>
+                        }
+                    </a>
+                    <div class="account-dropdown-content">
+                        @if (ViewBag.pmmodel.IsLoggedIn)
+                        {
+                            <a href="@Url.Action("ProfileInfo", "Account")">Thông tin tài khoản</a>
+                            <a href="@Url.Action("MyOrder", "Order")">Lịch sử mua hàng</a>
+                            <a href="@Url.Action("Logout", "Account")" style="color: #ff7675;">Đăng xuất</a>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Register", "Account")">Đăng ký</a>
+                            <a href="@Url.Action("Login", "Account")">Đăng nhập</a>
+                        }
+                    </div>
+                </div>
+
+                <!-- Giỏ hàng kèm số lượng CartCount -->
+                <a href="@Url.Action("Index", "Cart")" class="nav-link fw-bold" style="color: #d4af37 !important;">
+                    <i class="fas fa-shopping-cart me-1"></i>Giỏ hàng (<span id="cart-count">@ViewBag.pmmodel.CartCount</span>)
+                </a>
+
+                <!-- Chỉ hiển thị nút Quản trị nếu là tài khoản Admin -->
+                @if (isAdmin)
+                {
+                    <a href="/Admin/Home/Index" class="btn btn-sm btn-outline-gold ms-2" style="font-size: 12px;">Quản trị</a>
+                }
+            </div>
+        </div>
+    </nav>
+
+    <!-- Nội dung chính -->
+    <div class="container body-content mt-4">
+        @RenderBody()
+    </div>
+
+    <!-- 3 Cột Cam Kết Dịch Vụ -->
+    <div class="trust-badges">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-4 trust-item">
+                    <div class="trust-icon"><i class="fas fa-shield-alt"></i></div>
+                    <h6>Mua Sắm An Toàn</h6>
+                    <p>Thanh toán bảo mật & thông tin khách hàng tuyệt đối</p>
+                </div>
+                <div class="col-md-4 trust-item">
+                    <div class="trust-icon"><i class="fas fa-headset"></i></div>
+                    <h6>Hỗ Trợ Tư Vấn 24/7</h6>
+                    <p>Tư vấn thiết kế nội thất & giải đáp mọi thắc mắc</p>
+                </div>
+                <div class="col-md-4 trust-item">
+                    <div class="trust-icon"><i class="fas fa-box-open"></i></div>
+                    <h6>Đổi Trả Trong 30 Ngày</h6>
+                    <p>Hỗ trợ đổi trả linh hoạt nếu có lỗi từ nhà sản xuất</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center py-3 am-footer">
+        <p class="mb-0">&copy; @DateTime.Now.Year - <strong style="color: #d4af37;">ANH MINH NỘI THẤT</strong> (BE_25DH190065)</p>
+    </footer>
+
+    <script src="~/Scripts/jquery-3.7.0.min.js"></script>
+    <script src="~/Scripts/bootstrap.bundle.min.js"></script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>

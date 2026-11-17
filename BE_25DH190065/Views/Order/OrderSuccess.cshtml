@@ -1,0 +1,68 @@
+﻿@model BE_25DH190065.Models.Order
+
+@{
+    ViewBag.Title = "Đặt hàng thành công";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card border-0 shadow-sm p-4 mt-4 mb-4" style="border-top: 4px solid #8ba629 !important;">
+    <div class="text-center py-3">
+        <div style="font-size: 48px; color: #8ba629;">✔</div>
+        <h3 class="fw-bold mt-2" style="color: #6b8223;">ĐẶT HÀNG THÀNH CÔNG!</h3>
+        <p class="text-muted mb-1">
+            Cảm ơn bạn đã tin tưởng mua sắm tại <strong>Nội Thất HomeStyle</strong>.
+        </p>
+        <p class="mb-0">
+            Mã đơn hàng của bạn là: <span class="badge bg-success fs-6">#@Model.OrderID</span>
+        </p>
+    </div>
+
+    <hr />
+
+    <div class="row my-3">
+        <div class="col-md-6">
+            <h6 class="fw-bold text-uppercase text-muted mb-3">Thông tin đơn hàng</h6>
+            <p class="mb-2"><strong>Ngày đặt hàng:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+            <p class="mb-2"><strong>Hình thức & Địa chỉ:</strong> @Model.PaymentStatus</p>
+            <p class="mb-0">
+                <strong>Tổng tiền thanh toán:</strong>
+                <span class="text-danger fw-bold fs-5">@String.Format("{0:0,0}", Model.TotalAmount) VNĐ</span>
+            </p>
+        </div>
+    </div>
+
+    @if (Model.OrderDetails != null && Model.OrderDetails.Any())
+    {
+        <h6 class="fw-bold text-uppercase text-muted mt-3 mb-2">Chi tiết sản phẩm đã đặt</h6>
+        <table class="table table-bordered align-middle bg-white">
+            <thead class="table-light">
+                <tr>
+                    <th>Sản phẩm</th>
+                    <th class="text-center">Số lượng</th>
+                    <th class="text-end">Đơn giá</th>
+                    <th class="text-end">Thành tiền</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.OrderDetails)
+                {
+                    <tr>
+                        <td>@(item.Product != null ? item.Product.ProductName : "Sản phẩm #" + item.ProductID)</td>
+                        <td class="text-center">@item.Quantity</td>
+                        <td class="text-end">@String.Format("{0:0,0}", item.UnitPrice) đ</td>
+                        <td class="text-end fw-bold" style="color: #8ba629;">@String.Format("{0:0,0}", item.Quantity * item.UnitPrice) đ</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <div class="text-center mt-4">
+        <a href="@Url.Action("Index", "Home")" class="btn text-white px-4 me-2" style="background-color: #8ba629;">
+            Tiếp tục mua sắm
+        </a>
+        <a href="@Url.Action("OrderHistory", "Order")" class="btn btn-outline-secondary px-4">
+            Xem lịch sử đơn hàng
+        </a>
+    </div>
+</div>
