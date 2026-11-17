@@ -167,18 +167,35 @@ namespace BE_25DH190065.Areas.Admin.Controllers
         public ActionResult DeleteConfirmed(string id)
         {
             User user = db.Users.Find(id);
-            db.Users.Remove(user);
-            db.SaveChanges();
-            return RedirectToAction("Index");
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
+            if (user != null)
             {
-                db.Dispose();
+                // 1. Tìm các hồ sơ khách hàng (Customer) gắn với tài khoản này
+                var customers = db.Customers.Where(c => c.Username == id).ToList();
+
+                foreach (var cus in customers)
+                {
+                    // 2. Tìm tất cả đơn hàng (Order) của khách hàng này
+                    var orders = db.Orders.Where(o => o.CustomerID == cus.CustomerID).ToList();
+
+                    foreach (var ord in orders)
+                    {
+                        // 3. Xóa chi tiết đơn hàng (OrderDetail) trước
+                        var orderDetails = db.OrderDetails.Where(od => od.OrderID == ord.OrderID).ToList();
+                        db.OrderDetails.RemoveRange(orderDetails);
+                    }
+
+                    // 4. Xóa đơn hàng (Order)
+                    db.Orders.RemoveRange(orders);
+                }
+
+                // 5. Xóa hồ sơ khách hàng (Customer)
+                db.Customers.RemoveRange(customers);
+
+                // 6. Cuối cùng mới xóa tài khoản (User)
+                db.Users.Remove(user);
+                db.SaveChanges();
             }
-            base.Dispose(disposing);
+            return RedirectToAction("Index");
         }
     }
 }
