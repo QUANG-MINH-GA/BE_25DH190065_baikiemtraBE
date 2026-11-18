@@ -4,204 +4,255 @@
     ViewBag.Title = "Đơn hàng của tôi";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    string currentTab = ViewBag.StatusTab ?? "Tất cả đơn";
-    string searchTerm = ViewBag.SearchTerm ?? "";
-    bool showAll = ViewBag.ShowAll ?? false;
-    int totalMatched = ViewBag.TotalMatchedCount ?? 0;
+    string currentStatus = ViewBag.CurrentStatus ?? "all";
+    string searchQuery = ViewBag.SearchQuery ?? "";
+    string expandStatus = ViewBag.ExpandStatus ?? "";
 
-    string[] tabs = new[] { "Tất cả đơn", "Chờ thanh toán", "Đang xử lý", "Đang vận chuyển", "Đã giao", "Đã hủy" };
+    // Danh sách 5 trạng thái chuẩn theo yêu cầu
+    var statusList = new List<string>
+{
+        "Chờ thanh toán",
+        "Đang xử lý",
+        "Đang vận chuyển",
+        "Đã giao",
+        "Đã huỷ"
+    };
+
+    // Chuẩn hóa trạng thái cũ (như COD) về Chờ thanh toán nếu có
+    Func<string, string> normalizeStatus = (st) =>
+    {
+        if (string.IsNullOrEmpty(st) || st.Equals("COD", StringComparison.OrdinalIgnoreCase))
+            return "Chờ thanh toán";
+        return st;
+    };
 }
 
 <style>
     .order-tabs {
         display: flex;
         background: #fff;
-        border-bottom: 1px solid #e0e0e0;
-        margin-bottom: 15px;
+        border-bottom: 1px solid #e5e5e5;
+        margin-bottom: 16px;
+        overflow-x: auto;
     }
 
-    .order-tab-item {
-        flex: 1;
-        text-align: center;
-        padding: 12px 8px;
-        text-decoration: none;
-        color: #555;
-        font-weight: 500;
-        font-size: 14px;
-        border-bottom: 2px solid transparent;
-    }
-
-        .order-tab-item:hover {
-            color: #8ba629;
+        .order-tabs a {
+            flex: 1;
+            text-align: center;
+            padding: 14px 10px;
+            color: #555;
+            text-decoration: none;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
         }
 
-        .order-tab-item.active {
-            color: #8ba629;
-            border-bottom: 2px solid #8ba629;
-            font-weight: 700;
-        }
+            .order-tabs a.active {
+                color: #0d6efd;
+                border-bottom-color: #0d6efd;
+                font-weight: 600;
+            }
 
     .order-card {
         background: #fff;
-        border: 1px solid #eaeaea;
+        border: 1px solid #e0e0e0;
         border-radius: 6px;
-        padding: 16px;
+        padding: 16px 20px;
         margin-bottom: 16px;
     }
+
+    .order-status-header {
+        font-size: 14px;
+        font-weight: 600;
+        color: #666;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #f0f0f0;
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .order-product-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px dashed #eee;
+    }
+
+    .order-product-info {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .order-product-img {
+        width: 68px;
+        height: 68px;
+        object-fit: cover;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+
+    .order-footer {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        padding-top: 12px;
+    }
+
+    .order-total {
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+
+        .order-total span {
+            font-weight: 700;
+            color: #222;
+            font-size: 18px;
+        }
+
+    .btn-order-action {
+        border: 1px solid #0d6efd;
+        color: #0d6efd;
+        background: #fff;
+        padding: 6px 16px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 14px;
+        margin-left: 8px;
+        transition: 0.2s;
+    }
+
+        .btn-order-action:hover {
+            background: #0d6efd;
+            color: #fff;
+        }
 </style>
 
-<h4 class="mb-3 fw-bold" style="color: #333;">Đơn hàng của tôi</h4>
+<div class="container my-4">
+    <h3 class="mb-3 fw-bold">Đơn hàng của tôi</h3>
 
-<!-- 6 Tab trạng thái đơn hàng theo slide[cite: 11] -->
-<div class="order-tabs shadow-sm">
-    @foreach (var tab in tabs)
-    {
-        <a href="@Url.Action("MyOrder", "Order", new { statusTab = tab, searchTerm = searchTerm })"
-           class="order-tab-item @(currentTab == tab ? "active" : "")">
-            @tab
-        </a>
-    }
-</div>
+    <!-- 1. Thanh Tabs trạng thái -->
+    <div class="order-tabs shadow-sm rounded-top">
+        <a href="@Url.Action("MyOrder", "Order", new { status = "all", search = searchQuery })"
+           class="@(currentStatus == "all" ? "active" : "")">Tất cả đơn</a>
 
-<!-- Thanh tìm kiếm theo Mã đơn hàng hoặc Tên sản phẩm[cite: 11] -->
-@using (Html.BeginForm("MyOrder", "Order", FormMethod.Get, new { @class = "input-group mb-4 shadow-sm" }))
-{
-    <input type="hidden" name="statusTab" value="@currentTab" />
-    <input type="text" name="searchTerm" value="@searchTerm" class="form-control" placeholder="Tìm đơn hàng theo Mã đơn hàng hoặc Tên sản phẩm..." />
-    <button type="submit" class="btn text-white px-4" style="background-color: #8ba629;">Tìm đơn hàng</button>
-}
-
-<!-- Kiểm tra nếu chưa có đơn hàng nào[cite: 11] -->
-@if (Model == null || !Model.Any())
-{
-    <div class="card p-5 text-center border-0 shadow-sm">
-        <p class="fw-bold fs-5 text-muted mb-3">BẠN CHƯA CÓ ĐƠN HÀNG NÀO. HÃY ĐẶT ĐƠN NGAY.</p>
-        <div>
-            <a href="@Url.Action("Index", "Home")" class="btn text-white px-4" style="background-color: #8ba629;">
-                Đến trang chủ mua sắm
-            </a>
-        </div>
-    </div>
-}
-else
-{
-    if (currentTab == "Tất cả đơn")
-    {
-        // Gom nhóm đơn hàng theo trạng thái đơn, mỗi trạng thái hiển thị tối đa 2 đơn gần nhất[cite: 11]
-        var groupedOrders = Model.GroupBy(o => string.IsNullOrEmpty(o.PaymentStatus) ? "Đang xử lý" : o.PaymentStatus);
-
-        foreach (var group in groupedOrders)
+        @foreach (var st in statusList)
         {
-            string groupStatus = (group.Key == "COD" || group.Key == "Chờ xử lý") ? "Đang xử lý" : group.Key;
-            var ordersToShow = group.OrderByDescending(o => o.OrderDate).Take(2).ToList();
-
-            foreach (var order in ordersToShow)
-            {
-                var firstDetail = order.OrderDetails.FirstOrDefault();
-                <div class="order-card shadow-sm">
-                    <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
-                        <span class="fw-semibold text-muted small">
-                            Trạng thái: <strong style="color: #6b8223;">@order.PaymentStatus</strong> | Mã ĐH: #@order.OrderID (@order.OrderDate.ToString("dd/MM/yyyy"))
-                        </span>
-                        @if (order.PaymentStatus != "Đã hủy" && order.PaymentStatus != "Đã giao")
-                        {
-                            using (Html.BeginForm("CancelOrder", "Order", new { id = order.OrderID }, FormMethod.Post, new { style = "display:inline;" }))
-                            {
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Xác nhận hủy đơn hàng #@order.OrderID?');">Hủy đơn</button>
-                            }
-                        }
-                    </div>
-
-                    @foreach (var detail in order.OrderDetails)
-                    {
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <div class="d-flex align-items-center">
-                                <img src="@Url.Content(detail.Product.ProductImage)" style="width: 60px; height: 60px; object-fit: contain;" class="border rounded me-3" />
-                                <div>
-                                    <div class="fw-semibold">@detail.Product.ProductName</div>
-                                    <div class="text-muted small">Số lượng: x@(detail.Quantity)</div>
-                                </div>
-                            </div>
-                            <div class="fw-bold">@String.Format("{0:0,0}", detail.UnitPrice) đ</div>
-                        </div>
-                    }
-
-                    <div class="d-flex justify-content-between align-items-center pt-3 mt-2 border-top">
-                        <div>
-                            @if (group.Count() > 2)
-                            {
-                                <a href="@Url.Action("MyOrder", "Order", new { statusTab = groupStatus, showAll = true })" class="btn btn-sm btn-outline-secondary">
-                                    Xem thêm (@group.Count() đơn)
-                                </a>
-                            }
-                        </div>
-                        <div class="text-end">
-                            <div class="mb-2">Tổng tiền: <strong class="text-danger fs-5">@String.Format("{0:0,0}", order.TotalAmount) đ</strong></div>
-                            @if (firstDetail != null)
-                            {
-                                <a href="@Url.Action("AddToCart", "Cart", new { id = firstDetail.ProductID, quantity = 1 })" class="btn btn-sm btn-outline-primary me-1">
-                                    Mua lại
-                                </a>
-                                <a href="@Url.Action("ProductDetail", "Home", new { id = firstDetail.ProductID })" class="btn btn-sm btn-outline-secondary">
-                                    Xem chi tiết
-                                </a>
-                            }
-                        </div>
-                    </div>
-                </div>
-            }
+            <a href="@Url.Action("MyOrder", "Order", new { status = st, search = searchQuery })"
+               class="@(currentStatus == st ? "active" : "")">@st</a>
         }
+    </div>
+
+    <!-- 2. Phần Tìm kiếm đơn hàng -->
+    <form method="get" action="@Url.Action("MyOrder", "Order")" class="mb-4">
+        <input type="hidden" name="status" value="@currentStatus" />
+        <div class="input-group shadow-sm">
+            <span class="input-group-text bg-white border-end-0"><i class="fa fa-search text-muted"></i></span>
+            <input type="text" name="search" value="@searchQuery" class="form-control border-start-0"
+                   placeholder="Tìm đơn hàng theo Mã đơn hàng hoặc Tên sản phẩm..." />
+            <button type="submit" class="btn btn-outline-primary px-4">Tìm đơn hàng</button>
+        </div>
+    </form>
+
+    <!-- 3. Phần Đơn hàng của tôi -->
+    @{
+        var filteredOrders = currentStatus == "all"
+            ? Model.ToList()
+            : Model.Where(o => normalizeStatus(o.PaymentStatus) == currentStatus).ToList();
+    }
+
+    @if (!filteredOrders.Any())
+    {
+        <div class="text-center bg-white p-5 rounded shadow-sm border">
+            <h5 class="text-muted mb-3">BẠN CHƯA CÓ ĐƠN HÀNG NÀO. HÃY ĐẶT ĐƠN NGAY.</h5>
+            <a href="@Url.Action("Index", "Home")" class="btn btn-primary px-4">Về trang chủ mua sắm</a>
+        </div>
     }
     else
     {
-        // Hiển thị danh sách của 1 tab trạng thái cụ thể[cite: 11]
-        foreach (var order in Model)
-        {
-            var firstDetail = order.OrderDetails.FirstOrDefault();
-            <div class="order-card shadow-sm">
-                <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
-                    <span class="fw-semibold text-muted small">
-                        Trạng thái: <strong style="color: #6b8223;">@order.PaymentStatus</strong> | Mã ĐH: #@order.OrderID (@order.OrderDate.ToString("dd/MM/yyyy"))
-                    </span>
-                </div>
+        // Xác định danh sách nhóm trạng thái cần hiển thị
+        var groupsToRender = currentStatus == "all"
+            ? statusList
+            : new List<string> { currentStatus };
 
-                @foreach (var detail in order.OrderDetails)
+        foreach (var groupStatus in groupsToRender)
+        {
+            var ordersInGroup = filteredOrders
+                .Where(o => normalizeStatus(o.PaymentStatus) == groupStatus)
+                .OrderByDescending(o => o.OrderDate)
+                .ToList();
+
+            if (!ordersInGroup.Any()) { continue; }
+
+            // Mặc định lấy 2 đơn gần nhất; nếu bấm "Xem thêm" thì lấy tối đa 50 đơn gần nhất
+            bool isExpanded = (expandStatus == groupStatus);
+            int takeLimit = isExpanded ? 50 : 2;
+            var displayedOrders = ordersInGroup.Take(takeLimit).ToList();
+
+            <div class="mb-4">
+                @foreach (var order in displayedOrders)
                 {
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <div class="d-flex align-items-center">
-                            <img src="@Url.Content(detail.Product.ProductImage)" style="width: 60px; height: 60px; object-fit: contain;" class="border rounded me-3" />
+                    var firstDetail = order.OrderDetails.FirstOrDefault();
+                    int firstProductId = firstDetail != null ? firstDetail.ProductID : 0;
+
+                    <div class="order-card shadow-sm">
+                        <div class="order-status-header">
+                            <span>
+                                <i class="fa fa-truck me-1"></i> @groupStatus
+                                <span class="text-muted fw-normal ms-2">(Mã ĐH: #@order.OrderID - Ngày đặt: @string.Format("{0:dd/MM/yyyy}", order.OrderDate))</span>
+                            </span>
+                        </div>
+
+                        <!-- Danh sách sản phẩm trong đơn -->
+                        @foreach (var item in order.OrderDetails)
+                        {
+                            <div class="order-product-row">
+                                <div class="order-product-info">
+                                    <img src="@Url.Content(item.Product.ProductImage ?? "~/Content/Images/no-image.png")"
+                                         alt="@item.Product.ProductName" class="order-product-img" />
+                                    <div>
+                                        <div class="fw-semibold text-dark">@item.Product.ProductName</div>
+                                        <small class="text-muted">Số lượng: x@item.Quantity</small>
+                                    </div>
+                                </div>
+                                <div class="fw-semibold text-dark">
+                                    @string.Format("{0:N0} đ", item.UnitPrice * item.Quantity)
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Tổng tiền & 2 nút MUA LẠI / XEM CHI TIẾT -->
+                        <div class="order-footer">
+                            <div class="order-total">
+                                Tổng tiền: <span>@string.Format("{0:N0} đ", order.TotalAmount)</span>
+                            </div>
                             <div>
-                                <div class="fw-semibold">@detail.Product.ProductName</div>
-                                <div class="text-muted small">Số lượng: x@(detail.Quantity)</div>
+                                <a href="@Url.Action("BuyAgain", "Order", new { orderId = order.OrderID })"
+                                   class="btn-order-action">Mua lại</a>
+
+                                @if (firstProductId > 0)
+                                {
+                                    <a href="@Url.Action("ProductDetail", "Home", new { id = firstProductId })"
+                                       class="btn-order-action">Xem chi tiết</a>
+                                }
                             </div>
                         </div>
-                        <div class="fw-bold">@String.Format("{0:0,0}", detail.UnitPrice) đ</div>
                     </div>
                 }
 
-                <div class="text-end pt-3 mt-2 border-top">
-                    <div class="mb-2">Tổng tiền: <strong class="text-danger fs-5">@String.Format("{0:0,0}", order.TotalAmount) đ</strong></div>
-                    @if (firstDetail != null)
-                    {
-                        <a href="@Url.Action("AddToCart", "Cart", new { id = firstDetail.ProductID, quantity = 1 })" class="btn btn-sm btn-outline-primary me-1">
-                            Mua lại
+                <!-- Nút Xem thêm (hiển thị tối đa 50 đơn gần nhất của trạng thái đó) -->
+                @if (ordersInGroup.Count > 2 && !isExpanded)
+                {
+                    <div class="text-center mb-3">
+                        <a href="@Url.Action("MyOrder", "Order", new { status = currentStatus, search = searchQuery, expandStatus = groupStatus })"
+                           class="btn btn-light border px-4 text-secondary">
+                            Xem thêm (@(Math.Min(ordersInGroup.Count, 50) - 2) đơn hàng gần nhất)
                         </a>
-                        <a href="@Url.Action("ProductDetail", "Home", new { id = firstDetail.ProductID })" class="btn btn-sm btn-outline-secondary">
-                            Xem chi tiết
-                        </a>
-                    }
-                </div>
-            </div>
-        }
-
-        if (!showAll && totalMatched > 2)
-        {
-            <div class="text-center mt-3">
-                <a href="@Url.Action("MyOrder", "Order", new { statusTab = currentTab, searchTerm = searchTerm, showAll = true })" class="btn btn-outline-secondary px-4">
-                    Xem thêm (tối đa 50 đơn gần nhất)
-                </a>
+                    </div>
+                }
             </div>
         }
     }
-}
+</div>
