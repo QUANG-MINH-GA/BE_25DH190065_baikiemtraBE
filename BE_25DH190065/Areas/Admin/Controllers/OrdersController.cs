@@ -18,10 +18,12 @@ namespace BE_25DH190065.Areas.Admin.Controllers
         {
             var orders = db.Orders.Include(o => o.Customer).AsQueryable();
 
-            // 1. Tìm theo Tên khách hàng
+            // 1. Tìm theo Tên khách hàng hoặc Tên đăng nhập
             if (!string.IsNullOrEmpty(customerName))
             {
-                orders = orders.Where(o => o.Customer.CustomerName.Contains(customerName));
+                orders = orders.Where(o =>
+                    o.Customer.CustomerName.Contains(customerName) ||
+                    o.Customer.Username.Contains(customerName));
             }
 
             // 2. Tìm theo Trạng thái thanh toán
@@ -45,7 +47,12 @@ namespace BE_25DH190065.Areas.Admin.Controllers
             int pageNumber = page ?? 1;
             int pageSize = 15; // Phân trang 15 đơn hàng/trang theo yêu cầu đề
 
-            var pagedOrders = orders.OrderByDescending(o => o.OrderDate).ToPagedList(pageNumber, pageSize);
+            // Sắp xếp mới nhất lên đầu theo cả ngày đặt lẫn mã đơn hàng
+            var pagedOrders = orders
+                .OrderByDescending(o => o.OrderDate)
+                .ThenByDescending(o => o.OrderID)
+                .ToPagedList(pageNumber, pageSize);
+
             return View(pagedOrders);
         }
 
