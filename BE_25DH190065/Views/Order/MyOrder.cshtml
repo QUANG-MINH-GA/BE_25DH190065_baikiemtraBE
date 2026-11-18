@@ -18,12 +18,22 @@
         "Đã huỷ"
     };
 
-    // Chuẩn hóa trạng thái cũ (như COD) về Chờ thanh toán nếu có
+    // Chuẩn hóa trạng thái trong DB về đúng 5 trạng thái của Tab
     Func<string, string> normalizeStatus = (st) =>
     {
-        if (string.IsNullOrEmpty(st) || st.Equals("COD", StringComparison.OrdinalIgnoreCase))
-            return "Chờ thanh toán";
-        return st;
+        if (string.IsNullOrWhiteSpace(st)) return "Chờ thanh toán";
+        st = st.Trim();
+        if (st.Equals("Đang xử lý", StringComparison.OrdinalIgnoreCase))
+            return "Đang xử lý";
+        if (st.Equals("Đang vận chuyển", StringComparison.OrdinalIgnoreCase))
+            return "Đang vận chuyển";
+        if (st.Equals("Đã giao", StringComparison.OrdinalIgnoreCase) ||
+            st.Equals("Giao hàng thành công", StringComparison.OrdinalIgnoreCase))
+            return "Đã giao";
+        if (st.Equals("Đã huỷ", StringComparison.OrdinalIgnoreCase) ||
+            st.Equals("Đã hủy", StringComparison.OrdinalIgnoreCase))
+            return "Đã huỷ";
+        return "Chờ thanh toán";
     };
 }
 
@@ -122,10 +132,29 @@
         font-size: 14px;
         margin-left: 8px;
         transition: 0.2s;
+        display: inline-block;
     }
 
         .btn-order-action:hover {
             background: #0d6efd;
+            color: #fff;
+        }
+
+    .btn-order-cancel {
+        border: 1px solid #dc3545;
+        color: #dc3545;
+        background: #fff;
+        padding: 6px 16px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 14px;
+        margin-left: 8px;
+        transition: 0.2s;
+        display: inline-block;
+    }
+
+        .btn-order-cancel:hover {
+            background: #dc3545;
             color: #fff;
         }
 </style>
@@ -149,7 +178,7 @@
     <form method="get" action="@Url.Action("MyOrder", "Order")" class="mb-4">
         <input type="hidden" name="status" value="@currentStatus" />
         <div class="input-group shadow-sm">
-            <span class="input-group-text bg-white border-end-0"><i class="fa fa-search text-muted"></i></span>
+            <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
             <input type="text" name="search" value="@searchQuery" class="form-control border-start-0"
                    placeholder="Tìm đơn hàng theo Mã đơn hàng hoặc Tên sản phẩm..." />
             <button type="submit" class="btn btn-outline-primary px-4">Tìm đơn hàng</button>
@@ -172,7 +201,6 @@
     }
     else
     {
-        // Xác định danh sách nhóm trạng thái cần hiển thị
         var groupsToRender = currentStatus == "all"
             ? statusList
             : new List<string> { currentStatus };
@@ -182,11 +210,11 @@
             var ordersInGroup = filteredOrders
                 .Where(o => normalizeStatus(o.PaymentStatus) == groupStatus)
                 .OrderByDescending(o => o.OrderDate)
+                .ThenByDescending(o => o.OrderID)
                 .ToList();
 
             if (!ordersInGroup.Any()) { continue; }
 
-            // Mặc định lấy 2 đơn gần nhất; nếu bấm "Xem thêm" thì lấy tối đa 50 đơn gần nhất
             bool isExpanded = (expandStatus == groupStatus);
             int takeLimit = isExpanded ? 50 : 2;
             var displayedOrders = ordersInGroup.Take(takeLimit).ToList();
@@ -200,7 +228,7 @@
                     <div class="order-card shadow-sm">
                         <div class="order-status-header">
                             <span>
-                                <i class="fa fa-truck me-1"></i> @groupStatus
+                                <i class="fas fa-truck me-1"></i> @groupStatus
                                 <span class="text-muted fw-normal ms-2">(Mã ĐH: #@order.OrderID - Ngày đặt: @string.Format("{0:dd/MM/yyyy}", order.OrderDate))</span>
                             </span>
                         </div>
@@ -214,7 +242,7 @@
                                          alt="@item.Product.ProductName" class="order-product-img" />
                                     <div>
                                         <div class="fw-semibold text-dark">@item.Product.ProductName</div>
-                                        <small class="text-muted">Số lượng: x@item.Quantity</small>
+                                        <small class="text-muted">Số lượng: x@(item.Quantity)</small>
                                     </div>
                                 </div>
                                 <div class="fw-semibold text-dark">
@@ -223,12 +251,19 @@
                             </div>
                         }
 
-                        <!-- Tổng tiền & 2 nút MUA LẠI / XEM CHI TIẾT -->
+                        <!-- Tổng tiền & các nút HỦY ĐƠN / MUA LẠI / XEM CHI TIẾT -->
                         <div class="order-footer">
                             <div class="order-total">
                                 Tổng tiền: <span>@string.Format("{0:N0} đ", order.TotalAmount)</span>
                             </div>
                             <div>
+                                @if (groupStatus == "Chờ thanh toán")
+                                {
+                                    <a href="@Url.Action("CancelOrder", "Order", new { id = order.OrderID })"
+                                       class="btn-order-cancel"
+                                       onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng #@order.OrderID không?');">Hủy đơn</a>
+                                }
+
                                 <a href="@Url.Action("BuyAgain", "Order", new { orderId = order.OrderID })"
                                    class="btn-order-action">Mua lại</a>
 
@@ -242,7 +277,7 @@
                     </div>
                 }
 
-                <!-- Nút Xem thêm (hiển thị tối đa 50 đơn gần nhất của trạng thái đó) -->
+                <!-- Nút Xem thêm -->
                 @if (ordersInGroup.Count > 2 && !isExpanded)
                 {
                     <div class="text-center mb-3">

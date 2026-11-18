@@ -5,64 +5,97 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="card border-0 shadow-sm p-4 mt-4 mb-4" style="border-top: 4px solid #8ba629 !important;">
-    <div class="text-center py-3">
-        <div style="font-size: 48px; color: #8ba629;">✔</div>
-        <h3 class="fw-bold mt-2" style="color: #6b8223;">ĐẶT HÀNG THÀNH CÔNG!</h3>
-        <p class="text-muted mb-1">
-            Cảm ơn bạn đã tin tưởng mua sắm tại <strong>Nội Thất HomeStyle</strong>.
-        </p>
-        <p class="mb-0">
-            Mã đơn hàng của bạn là: <span class="badge bg-success fs-6">#@Model.OrderID</span>
-        </p>
-    </div>
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4 p-md-5">
+                    <!-- Phần thông báo thành công -->
+                    <div class="text-center mb-4">
+                        <div class="mb-3">
+                            <i class="fas fa-check-circle text-success" style="font-size: 64px;"></i>
+                        </div>
+                        <h3 class="fw-bold text-success">ĐẶT HÀNG THÀNH CÔNG!</h3>
+                        <p class="text-muted mb-0">
+                            Cảm ơn bạn đã tin tưởng và mua sắm tại <strong>Anh Minh Nội Thất</strong>.
+                        </p>
+                    </div>
 
-    <hr />
+                    <hr />
 
-    <div class="row my-3">
-        <div class="col-md-6">
-            <h6 class="fw-bold text-uppercase text-muted mb-3">Thông tin đơn hàng</h6>
-            <p class="mb-2"><strong>Ngày đặt hàng:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
-            <p class="mb-2"><strong>Hình thức & Địa chỉ:</strong> @Model.PaymentStatus</p>
-            <p class="mb-0">
-                <strong>Tổng tiền thanh toán:</strong>
-                <span class="text-danger fw-bold fs-5">@String.Format("{0:0,0}", Model.TotalAmount) VNĐ</span>
-            </p>
+                    <!-- Thông tin chi tiết đơn hàng vừa đặt -->
+                    <h5 class="fw-bold mb-3">Thông tin đơn hàng vừa đặt</h5>
+                    <div class="bg-light p-3 rounded mb-4">
+                        <div class="row mb-2">
+                            <div class="col-sm-4 text-muted">Mã đơn hàng:</div>
+                            <div class="col-sm-8 fw-bold">#@Model.OrderID</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-4 text-muted">Ngày đặt hàng:</div>
+                            <div class="col-sm-8">@string.Format("{0:dd/MM/yyyy HH:mm}", Model.OrderDate)</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-4 text-muted">Trạng thái:</div>
+                            <div class="col-sm-8">
+                                <span class="badge bg-warning text-dark">@Model.PaymentStatus</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4 text-muted">Địa chỉ giao hàng:</div>
+                            <div class="col-sm-8">@Model.AddressDelivery</div>
+                        </div>
+                    </div>
+
+                    <!-- Danh sách sản phẩm trong đơn vừa đặt -->
+                    <h6 class="fw-bold mb-3">Sản phẩm đã đặt</h6>
+                    <div class="table-responsive mb-3">
+                        <table class="table table-bordered align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th class="text-center">Số lượng</th>
+                                    <th class="text-end">Đơn giá</th>
+                                    <th class="text-end">Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.OrderDetails)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <img src="@Url.Content(item.Product.ProductImage ?? "~/Content/Images/no-image.png")"
+                                                     alt="@item.Product.ProductName"
+                                                     style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;" />
+                                                <span>@item.Product.ProductName</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">x@(item.Quantity)</td>
+                                        <td class="text-end">@string.Format("{0:N0} đ", item.UnitPrice)</td>
+                                        <td class="text-end fw-semibold">@string.Format("{0:N0} đ", item.UnitPrice * item.Quantity)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="3" class="text-end fs-5">Tổng thanh toán:</th>
+                                    <th class="text-end text-danger fs-5">@string.Format("{0:N0} đ", Model.TotalAmount)</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- 2 nút điều hướng -->
+                    <div class="d-flex justify-content-center gap-3 mt-4">
+                        <a href="@Url.Action("MyOrder", "Order")" class="btn btn-primary px-4">
+                            <i class="fas fa-list-alt me-1"></i> Xem đơn hàng của tôi
+                        </a>
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary px-4">
+                            <i class="fas fa-home me-1"></i> Tiếp tục mua sắm
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-
-    @if (Model.OrderDetails != null && Model.OrderDetails.Any())
-    {
-        <h6 class="fw-bold text-uppercase text-muted mt-3 mb-2">Chi tiết sản phẩm đã đặt</h6>
-        <table class="table table-bordered align-middle bg-white">
-            <thead class="table-light">
-                <tr>
-                    <th>Sản phẩm</th>
-                    <th class="text-center">Số lượng</th>
-                    <th class="text-end">Đơn giá</th>
-                    <th class="text-end">Thành tiền</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model.OrderDetails)
-                {
-                    <tr>
-                        <td>@(item.Product != null ? item.Product.ProductName : "Sản phẩm #" + item.ProductID)</td>
-                        <td class="text-center">@item.Quantity</td>
-                        <td class="text-end">@String.Format("{0:0,0}", item.UnitPrice) đ</td>
-                        <td class="text-end fw-bold" style="color: #8ba629;">@String.Format("{0:0,0}", item.Quantity * item.UnitPrice) đ</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-
-    <div class="text-center mt-4">
-        <a href="@Url.Action("Index", "Home")" class="btn text-white px-4 me-2" style="background-color: #8ba629;">
-            Tiếp tục mua sắm
-        </a>
-        <a href="@Url.Action("OrderHistory", "Order")" class="btn btn-outline-secondary px-4">
-            Xem lịch sử đơn hàng
-        </a>
     </div>
 </div>
